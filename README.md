@@ -1,88 +1,127 @@
 # Dukaan
 
-Dukaan is a multi-tenant, no-code store builder for independent businesses. Storefronts are available immediately at `/s/{slug}`; owners manage catalogues, orders, themes, and content from `/admin`.
+**A storefront and back office for independent sellers, in one place.**
 
-After onboarding, the new storefront opens in a separate tab. To use addresses such as `storename.yourdomain.com` in production, set `NEXT_PUBLIC_STORE_DOMAIN` to a domain you own, add both that domain and its wildcard (`*.yourdomain.com`) to the Vercel project, and configure the domain's DNS as Vercel instructs. Without that setup, onboarding opens the working `/s/{slug}` address on the current domain. Local development always uses this path address.
+Dukaan helps a small business go from a product idea to a shareable online shop. Owners can set up a store, choose its look, add products, and manage orders without building a storefront from scratch.
 
-## Run locally
+> **Hackathon demo:** Dukaan is a working product prototype. Razorpay is test-mode only, email notifications are simulated, and uploaded images use demo database storage. See [Demo scope](#demo-scope) before using it with real customers or payments.
 
-1. Install Node.js 20+, then copy `.env.example` to `.env`.
-2. Set `AUTH_SECRET` to a random value with at least 32 characters. Set `DATABASE_URL` to PostgreSQL.
-3. Run `docker compose up -d db` if using the included local database.
-4. Run `npm install`, `npm run db:migrate:deploy`, `npm run db:seed`, `npm run dev`. The dev command also applies pending Prisma migrations before starting Next.js.
-5. Open `http://localhost:3000`. Health check: `/api/health`.
+## Take a quick look
 
-`GEMINI_API_KEY` is optional for the rest of the app but required for AI-generated assistant answers and AI dashboard suggestions. It is read only on the server. `GEMINI_MODEL` can override the default `gemini-3.8-flash`. Checkout supports cash on delivery and an optional Razorpay **test-mode** checkout. No real payment can be collected by this configuration. Status email messages are logged as test notifications and are not sent. Logo upload is validated and stored as a database data URL for this demo. Configure S3-compatible variables before production-scale image use.
+- **Landing page:** `/`
+- **Live sample shop:** `/s/northstar-goods`
+- **Second sample shop:** `/s/field-notes-market`
+- **Create an account:** `/signup`
+- **Owner workspace:** `/admin`
 
-### Razorpay test checkout
+To explore the workspace, sign in with one of these seeded accounts. Both use the password `launch-demo-2026`.
 
-1. Create or sign into a Razorpay account and switch its dashboard to **Test Mode**. Generate test API keys.
-2. Set `RAZORPAY_KEY_ID` (`rzp_test_…`) and `RAZORPAY_KEY_SECRET` in `.env.local` or the deployment environment. Never expose the secret to browser code or commit it.
-3. For webhook reconciliation, configure the webhook URL as `https://your-domain/api/webhooks/razorpay`, subscribe to `payment.captured` and `payment.failed`, choose a webhook secret, and set that same value as `RAZORPAY_WEBHOOK_SECRET`.
-4. Enable automatic capture for test payments in Razorpay's dashboard. Restart the app, sign in as a store owner, open **Payments**, and enable **Razorpay test checkout**. COD remains available.
-5. Complete a mock transaction with Razorpay's documented test credentials. The checkout amount uses the app's INR prices. The server creates the provider order, verifies the checkout signature and captured amount, updates inventory only after capture, and accepts signed webhooks as reconciliation.
+| Role | Email | Sample store |
+| --- | --- | --- |
+| Owner | `owner@demo.launch` | Northstar Goods |
+| Staff | `staff@demo.launch` | Northstar Goods |
+| Owner | `owner@demo-b.launch` | Field Notes Market |
 
-This is an early demo integration using shared platform test credentials across stores. It does not onboard each store to its own Razorpay account, configure settlements/payouts, handle production-grade refunds/disputes, or support live credentials. Do not use it for real orders or money.
+## What you can do
 
-## Demo accounts
+- **Create a storefront:** Follow a guided setup, choose product categories, and preview the store theme.
+- **Make it yours:** Update the store name, logo, colors, fonts, announcement, homepage sections, and collection descriptions.
+- **Sell products:** Browse products, search and filter the catalog, add items to a cart, and place a cash-on-delivery order.
+- **Manage the day-to-day:** Create and edit products, track stock, view orders, and update order statuses from the workspace.
+- **Bring in a catalog:** Import CSV or Excel files with column mapping, a preview, and duplicate or invalid-row feedback. The repository includes a [catalog import template](public/product-import-template.csv) and [messy sample file](public/sample-messy-catalogue.csv).
+- **Get a store snapshot:** See sales, orders, inventory, recent activity, and a store-health score on the dashboard.
+- **Ask the store assistant:** Use Gemini-powered, read-only answers for supported store analytics questions. The dashboard still provides data-based tips when Gemini is not configured.
+- **Run multiple stores safely:** Store data is scoped by the signed-in user's membership and role; staff access is separate from owner settings.
+- **Use it on mobile:** Store setup, storefront, and workspace adapt to smaller screens.
 
-All seeded accounts use password `launch-demo-2026`.
+## Run it locally
 
-| Role | Email | Store |
-|---|---|---|
-| Store A owner | `owner@demo.launch` | Northstar Goods (`/s/northstar-goods`) |
-| Store A staff | `staff@demo.launch` | Northstar Goods |
-| Store B owner | `owner@demo-b.launch` | Field Notes Market (`/s/field-notes-market`) |
+### You’ll need
 
-Run `npm run db:seed` to seed 2 stores, 8 categories × 8 sample products in each store, and 24 orders per store distributed across the previous 60 days.
+- Node.js 20 or newer
+- Docker Desktop (for the included local PostgreSQL database), or another PostgreSQL database
 
-## Features mapped to checkpoints
+### Start the app
 
-1. Four-step onboarding has validation, back/next, local saved progress, and a progress indicator.
-2. Pick from eight categories and add custom categories.
-3. Category selection can populate eight polished sample products per category from the 64 item catalogue.
-4. `/admin/import` supports CSV/XLSX, mapping, preview, downloadable template, duplicate and invalid-row reports; sample messy CSV is in `public/sample-messy-catalogue.csv`.
-5. Four themes change layout, font, and colors and can be previewed before confirmation.
-6. Unique database-enforced slugs work at `/s/{slug}`; middleware also rewrites configured subdomains.
-7. Storefront includes home, category, product, search, category/price/stock filters, local cart, and COD checkout.
-8. Admin dashboard shows sales, orders, product/inventory metrics, a 7-day chart, recent activity, and health score.
-9. Owner settings control store identity, theme, colors, fonts, homepage sections, announcement, and footer; changes appear immediately.
-10. Product manager supports CRUD, stock/pricing, discount, variants, and bulk changes.
-11. Order manager updates statuses and stores a visible test-mode notification log.
-12. `tenantData()` resolves membership from the session, centralizes store-scoped queries, and never accepts tenant IDs from request data. Owner/staff roles are enforced; staff cannot change store settings. Tenant predicate tests are in `tests/tenant-scope.test.ts`.
-13. Store assistant answers fixed analytics questions through server-side Gemini function calls.
-14. Assistant has fixed read-only functions, validated arguments, request throttling, refusal rules, and shows the raw query data used. It refuses destructive/other-store requests and unsupported data requests.
-15. Wizard, storefront, and admin use responsive layouts and reusable accessible UI components.
+1. Clone this repository and enter the project folder.
+2. Copy `.env.example` to `.env`.
+3. Start the local database with `docker compose up -d db`.
+4. Install dependencies with `npm install`.
+5. Apply database migrations and load demo data:
 
-Innovation: dashboard store-health score and data-grounded AI next actions (falls back to explicit data tips without an API key).
+   ```bash
+   npm run db:migrate:deploy
+   npm run db:seed
+   ```
 
-## Architecture
+6. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+7. Visit [http://localhost:3000](http://localhost:3000).
+
+The development command applies pending migrations before starting Next.js. The health endpoint is `/api/health`.
+
+### Environment variables
+
+The minimum local configuration is in `.env.example`:
+
+| Variable | Required? | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `AUTH_SECRET` | Yes | Signs secure login sessions; use a unique random secret with at least 32 characters |
+| `APP_URL` | For deployment | Public base URL used by the app |
+| `GEMINI_API_KEY` | Optional | Enables the AI store assistant and AI dashboard suggestions |
+| `GEMINI_MODEL` | Optional | Overrides the default Gemini model |
+| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | Optional | Enables the Razorpay test checkout |
+| `RAZORPAY_WEBHOOK_SECRET` | Optional | Verifies Razorpay webhook events |
+| `NEXT_PUBLIC_STORE_DOMAIN` | Optional | Enables store subdomains on a domain you own |
+| `S3_*` | Optional | S3-compatible storage configuration for production images |
+
+Keep credentials in your local environment or hosting provider's secret settings. Never commit real API keys or secrets.
+
+## How the demo fits together
 
 ```mermaid
 flowchart LR
-  Browser[Responsive browser UI] --> Next[Next.js App Router]
-  Next --> Auth[Signed httpOnly session]
-  Auth --> DAL[Tenant-scoped data access layer]
-  Next --> DAL
-  DAL --> Prisma[Prisma ORM]
-  Prisma --> DB[(PostgreSQL: Neon / Supabase / local)]
-  Next --> Storage[DB demo uploads / S3-compatible production storage]
-  Next --> Razorpay[Razorpay test Orders API and signed webhook]
-  Next --> Tools[Fixed validated read-only tool functions]
-  Tools --> DAL
-  Tools --> Gemini[Gemini API: server-side key]
+  Shopper[Shopper] --> Store[Storefront]
+  Owner[Store owner or staff] --> Workspace[Admin workspace]
+  Store --> App[Next.js app]
+  Workspace --> App
+  App --> Auth[Session and role checks]
+  App --> Data[Tenant-scoped data layer]
+  Data --> DB[(PostgreSQL via Prisma)]
+  App --> Gemini[Gemini API, optional]
+  App --> Razorpay[Razorpay test checkout, optional]
 ```
 
-## Quality and deployment
+The app uses Next.js App Router, React, TypeScript, Prisma, and PostgreSQL. Store-scoped data access centralizes tenant filters, while session membership and owner/staff roles control workspace access.
 
-Run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`. The build script generates Prisma Client. GitHub Actions runs lint/typecheck/tests on pushes and pull requests to `main`; on main pushes it deploys only after those checks pass and when `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, and `DATABASE_URL` repository secrets exist. It runs committed migrations before Vercel deployment. Docker Compose runs the app and PostgreSQL locally. Subdomain rewriting needs a wildcard domain on the hosting platform.
+## Demo scope
 
-Required environment: `DATABASE_URL`, `AUTH_SECRET`. Optional AI: `GEMINI_API_KEY`, `GEMINI_MODEL`. Optional Razorpay demo: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`. Optional object storage: `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. Keep real secrets in platform environment settings; `.env` is gitignored.
+Dukaan is intended for exploring the product flow and presenting a prototype. It is not configured for live commerce:
 
-## Known limitations
+- **Payments:** Cash on delivery works in the demo. Razorpay integration is test-mode only and uses platform-level test credentials; it does not handle store onboarding, payouts, or production refunds and disputes. Never enter live payment credentials for this setup.
+- **Notifications:** Order status messages are recorded as demo notifications; no email provider sends them.
+- **Images:** Demo logo uploads are stored in the database. Use an S3-compatible image store before scaling production uploads.
+- **AI:** Assistant responses require a valid Gemini API key and a supported question. Keys stay on the server. Without a key, AI features are unavailable while non-AI dashboard tips remain.
+- **Custom domains:** Store URLs work on `/s/{slug}` by default. Subdomains such as `shop.yourdomain.com` require a domain you own, wildcard DNS, and matching hosting configuration.
 
-- Razorpay is test-mode only and uses shared platform credentials; store-specific merchant onboarding, live settlement, and production payment operations are not implemented.
-- Notification status updates are visible test logs; no email provider is configured.
-- Demo logo uploads use database data URLs. Production image storage needs an S3-compatible bucket and upload credentials.
-- AI features require a valid Gemini API key, network access, and model availability. Without the key, assistant UI explains the configuration need and the dashboard uses non-AI data tips.
-- This workspace contains no hosted database or Vercel credentials, so production deployment must be connected by the project owner.
+## Checks
+
+Run these before submitting changes:
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+GitHub Actions runs lint, type checking, and tests on pushes and pull requests to `main`. The optional deployment job requires Vercel and database secrets in the repository settings.
+
+## License
+
+No license has been added yet. All rights are reserved unless the repository owner adds a license.
