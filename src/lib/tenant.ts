@@ -27,6 +27,13 @@ export async function tenantData(requiredRole?: UserRole) {
       exists: (id: string) => db.category.findFirst({ where: byStoreAndId(storeId, id), select: { id: true } }),
       create: (name: string, slug: string) => db.category.create({ data: { storeId, name, slug } }),
       byName: (name: string) => db.category.findFirst({ where: { storeId, name: { equals: name, mode: "insensitive" } }, select: { id: true, name: true, slug: true } }),
+      remove: (id: string) => db.$transaction(async (tx) => {
+        const category = await tx.category.findFirst({ where: byStoreAndId(storeId, id), select: { id: true } });
+        if (!category) return false;
+        await tx.product.updateMany({ where: { storeId, categoryId: id }, data: { categoryId: null } });
+        const deleted = await tx.category.deleteMany({ where: byStoreAndId(storeId, id) });
+        return deleted.count === 1;
+      }),
     },
     storeSettings: {
       update: (data: Prisma.StoreUncheckedUpdateManyInput) => db.store.updateMany({ where: { id: storeId }, data }),

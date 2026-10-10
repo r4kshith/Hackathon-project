@@ -10,7 +10,7 @@ Dukaan is a multi-tenant, no-code store builder for independent businesses. Stor
 4. Run `npm install`, `npm run db:migrate:deploy`, `npm run db:seed`, `npm run dev`. The dev command also applies pending Prisma migrations before starting Next.js.
 5. Open `http://localhost:3000`. Health check: `/api/health`.
 
-The `OPENAI_API_KEY` is optional for the rest of the app but required for AI-generated assistant answers and AI dashboard suggestions. It is read only on the server. `OPENAI_MODEL` can override the default `gpt-4.1-mini`. Checkout supports cash on delivery and an optional Razorpay **test-mode** checkout. No real payment can be collected by this configuration. Status email messages are logged as test notifications and are not sent. Logo upload is validated and stored as a database data URL for this demo. Configure S3-compatible variables before production-scale image use.
+`GEMINI_API_KEY` is optional for the rest of the app but required for AI-generated assistant answers and AI dashboard suggestions. It is read only on the server. `GEMINI_MODEL` can override the default `gemini-3.8-flash`. Checkout supports cash on delivery and an optional Razorpay **test-mode** checkout. No real payment can be collected by this configuration. Status email messages are logged as test notifications and are not sent. Logo upload is validated and stored as a database data URL for this demo. Configure S3-compatible variables before production-scale image use.
 
 ### Razorpay test checkout
 
@@ -48,7 +48,7 @@ Run `npm run db:seed` to seed 2 stores, 8 categories × 8 sample products in eac
 10. Product manager supports CRUD, stock/pricing, discount, variants, and bulk changes.
 11. Order manager updates statuses and stores a visible test-mode notification log.
 12. `tenantData()` resolves membership from the session, centralizes store-scoped queries, and never accepts tenant IDs from request data. Owner/staff roles are enforced; staff cannot change store settings. Tenant predicate tests are in `tests/tenant-scope.test.ts`.
-13. Store assistant answers fixed analytics questions through server-side OpenAI Responses API tool calls.
+13. Store assistant answers fixed analytics questions through server-side Gemini function calls.
 14. Assistant has fixed read-only functions, validated arguments, request throttling, refusal rules, and shows the raw query data used. It refuses destructive/other-store requests and unsupported data requests.
 15. Wizard, storefront, and admin use responsive layouts and reusable accessible UI components.
 
@@ -68,19 +68,19 @@ flowchart LR
   Next --> Razorpay[Razorpay test Orders API and signed webhook]
   Next --> Tools[Fixed validated read-only tool functions]
   Tools --> DAL
-  Tools --> OpenAI[OpenAI API: server-side key]
+  Tools --> Gemini[Gemini API: server-side key]
 ```
 
 ## Quality and deployment
 
 Run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`. The build script generates Prisma Client. GitHub Actions runs lint/typecheck/tests on pushes and pull requests to `main`; on main pushes it deploys only after those checks pass and when `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, and `DATABASE_URL` repository secrets exist. It runs committed migrations before Vercel deployment. Docker Compose runs the app and PostgreSQL locally. Subdomain rewriting needs a wildcard domain on the hosting platform.
 
-Required environment: `DATABASE_URL`, `AUTH_SECRET`. Optional AI: `OPENAI_API_KEY`, `OPENAI_MODEL`. Optional Razorpay demo: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`. Optional object storage: `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. Keep real secrets in platform environment settings; `.env` is gitignored.
+Required environment: `DATABASE_URL`, `AUTH_SECRET`. Optional AI: `GEMINI_API_KEY`, `GEMINI_MODEL`. Optional Razorpay demo: `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`. Optional object storage: `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. Keep real secrets in platform environment settings; `.env` is gitignored.
 
 ## Known limitations
 
 - Razorpay is test-mode only and uses shared platform credentials; store-specific merchant onboarding, live settlement, and production payment operations are not implemented.
 - Notification status updates are visible test logs; no email provider is configured.
 - Demo logo uploads use database data URLs. Production image storage needs an S3-compatible bucket and upload credentials.
-- AI features require a valid OpenAI API key, network access, and model availability. Without the key, assistant UI explains the configuration need and the dashboard uses non-AI data tips.
+- AI features require a valid Gemini API key, network access, and model availability. Without the key, assistant UI explains the configuration need and the dashboard uses non-AI data tips.
 - This workspace contains no hosted database or Vercel credentials, so production deployment must be connected by the project owner.

@@ -44,11 +44,21 @@ export function OnboardingWizard({ ownerName }: { ownerName: string }) {
   function complete() {
     setError("");
     const customCategories = data.customCategory.trim() ? data.customCategory.split(",").map((name) => name.trim()).filter(Boolean) : [];
+    const storeTab = window.open("about:blank", "_blank");
+    if (storeTab) storeTab.opener = null;
     startTransition(async () => {
-      const result = await finishOnboardingAction({ storeName: data.storeName, businessType: data.businessType, email: data.email, phone: data.phone, address: data.address, categoryIndexes: data.categories, customCategories, themeId: data.themeId, logoDataUrl: data.logoDataUrl });
-      if (result.error) { setError(result.error); return; }
-      localStorage.removeItem("launch-onboarding");
-      router.push(`/s/${result.slug}`);
+      try {
+        const result = await finishOnboardingAction({ storeName: data.storeName, businessType: data.businessType, email: data.email, phone: data.phone, address: data.address, categoryIndexes: data.categories, customCategories, themeId: data.themeId, logoDataUrl: data.logoDataUrl });
+        if (result.error) { storeTab?.close(); setError(result.error); return; }
+        localStorage.removeItem("launch-onboarding");
+        if (storeTab && !storeTab.closed) {
+          storeTab.location.replace(`/s/${result.slug}`);
+          router.push("/admin");
+        } else router.push(`/s/${result.slug}`);
+      } catch {
+        storeTab?.close();
+        setError("We couldn't save your store yet. Please try again.");
+      }
     });
   }
 
@@ -64,7 +74,7 @@ export function OnboardingWizard({ ownerName }: { ownerName: string }) {
         {error && <p role="alert" className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>}
         <div className="mt-8 flex items-center justify-between border-t border-line pt-5"><Button variant="secondary" type="button" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0 || pending}><ArrowLeft size={16} className="mr-2" />Back</Button>{step < 3 ? <Button type="button" onClick={next}>Continue<ArrowRight size={16} className="ml-2" /></Button> : <Button type="button" onClick={complete} disabled={pending}>{pending ? "Building your store…" : "Build my store"}<ArrowRight size={16} className="ml-2" /></Button>}</div>
       </div>
-      <aside className="h-fit rounded-3xl border border-line bg-white p-5 sm:p-6"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-primary"><Store size={19} /></span><div><p className="text-xs text-muted">YOUR STORE</p><p className="font-semibold">{data.storeName || "Your new shop"}</p></div></div><div className="my-5 h-px bg-line" /><p className="text-xs font-semibold uppercase tracking-wider text-muted">Setup progress</p><ul className="mt-3 space-y-3 text-sm">{["Store details", "Contact information", "Product categories", "Storefront theme"].map((label, index) => <li key={label} className="flex items-center gap-2"><span className={`grid h-5 w-5 place-items-center rounded-full ${index < step ? "bg-primary text-white" : "bg-background text-muted"}`}>{index < step ? <Check size={12} /> : index + 1}</span><span className={index <= step ? "text-foreground" : "text-muted"}>{label}</span></li>)}</ul><div className="mt-5 rounded-2xl p-4" style={{ background: theme.colors.background, color: theme.colors.foreground, fontFamily: theme.font }}><span className="text-[10px] font-semibold uppercase tracking-[.18em]">LIVE PREVIEW · {theme.layout}</span><p className="mt-2 text-lg font-semibold">{data.storeName || "Your new shop"}</p><div className="mt-3 flex gap-2">{selectedNames.slice(0, 3).map((name) => <span key={name} className="rounded-full px-2 py-1 text-[10px]" style={{ background: theme.colors.accent }}>{name}</span>)}</div><button type="button" className="mt-4 min-h-9 rounded-lg px-3 text-xs font-semibold text-white" style={{ background: theme.colors.primary }}>Shop collection</button></div><p className="mt-4 text-xs leading-5 text-muted">Your setup is saved on this device as you go. You can change these details later in your dashboard.</p></aside>
+      <aside className="h-fit rounded-3xl border border-line bg-white p-5 sm:p-6"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-accent text-primary"><Store size={19} /></span><div><p className="text-xs text-muted">YOUR STORE</p><p className="font-semibold">{data.storeName || "Your new shop"}</p></div></div><div className="my-5 h-px bg-line" /><p className="text-xs font-semibold uppercase tracking-wider text-muted">Setup progress</p><ul className="mt-3 space-y-3 text-sm">{["Store details", "Contact information", "Product categories", "Storefront theme"].map((label, index) => <li key={label} className="flex items-center gap-2"><span className={`grid h-5 w-5 place-items-center rounded-full ${index < step ? "bg-primary text-white" : "bg-background text-muted"}`}>{index < step ? <Check size={12} /> : index + 1}</span><span className={index <= step ? "text-foreground" : "text-muted"}>{label}</span></li>)}</ul><div className="mt-5 rounded-2xl p-4 shadow-inner shadow-black/10" style={{ background: "linear-gradient(135deg, #173d30 0%, #286044 58%, #477951 100%)", color: "#f7f8f0", fontFamily: "Arial, Helvetica, sans-serif" }}><span className="text-[10px] font-semibold uppercase tracking-[.18em] text-white/75">LIVE PREVIEW · {theme.layout}</span><p className="mt-2 text-lg font-bold tracking-tight">{data.storeName || "Your new shop"}</p><div className="mt-3 flex flex-wrap gap-2">{selectedNames.slice(0, 3).map((name) => <span key={name} className="rounded-full border border-white/15 px-2 py-1 text-[10px] text-white/90" style={{ background: "rgba(237, 246, 224, .14)" }}>{name}</span>)}</div><button type="button" className="mt-4 min-h-9 rounded-lg bg-gradient-to-r from-[#c6e4ad] to-[#e5f1c9] px-3 text-xs font-bold text-[#183d30] shadow-md shadow-black/10">Shop collection</button></div><p className="mt-4 text-xs leading-5 text-muted">Your setup is saved on this device as you go. You can change these details later in your dashboard.</p></aside>
     </div>
   </section>;
 }

@@ -14,7 +14,7 @@ export default async function WebsitePage() {
   const themeId = (scoped.store.theme in themes ? scoped.store.theme : "atelier") as ThemeId;
   const theme = themes[themeId];
   const savedFont = themeConfig.font;
-  const font = savedFont === "Arial, Helvetica, sans-serif" || savedFont === "Georgia, serif" || savedFont === "Trebuchet MS, sans-serif" ? savedFont : theme.font;
+  const font = savedFont === "var(--font-bodoni), Georgia, serif" || savedFont === "var(--font-dm-sans), system-ui, sans-serif" || savedFont === "var(--font-manrope), system-ui, sans-serif" ? savedFont : theme.font;
   const savedCategoryContent = config.categoryContent && typeof config.categoryContent === "object" ? config.categoryContent as Record<string, { description?: string; imageUrl?: string }> : {};
   const categoryContent = categories.map((category) => ({
     slug: category.slug,

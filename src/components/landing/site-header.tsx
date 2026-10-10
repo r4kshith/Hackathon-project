@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, type FocusEvent } from "react";
 import { ChevronDown, ArrowUpRight } from "lucide-react";
+import { BrandLogo } from "../brand/brand-logo";
 
 const reasons = [
   { title: "Start selling sooner", text: "Set up your storefront, add products, and share a live link.", image: "photo-1578749556568-bc2c40e68b61", alt: "Handmade ceramic pieces" },
@@ -25,7 +26,7 @@ export function SiteHeader() {
   return <header ref={headerRef} className="relative z-30 mx-auto max-w-6xl" onMouseLeave={() => { if (!headerRef.current?.contains(document.activeElement)) setOpen(false); }} onBlurCapture={closeIfFocusLeaves} onKeyDown={(event) => { if (event.key === "Escape") { setOpen(false); triggerRef.current?.focus(); } }}>
     <nav aria-label="Main navigation" className="flex min-h-11 items-center justify-between gap-2">
       <div className="flex items-center gap-2 sm:gap-6">
-        <Link className="group flex min-h-11 items-center gap-2" href="/" aria-label="Dukaan home"><span className="grid size-9 place-items-center rounded-xl bg-[#dce9dc] font-serif text-lg font-semibold text-[#103f32] transition duration-300 group-hover:rotate-[-6deg] group-hover:bg-[#c3f078] motion-reduce:transition-none">D</span><span className="font-serif text-xl font-semibold tracking-[-0.06em] text-[#103f32] sm:text-[1.65rem]">Dukaan</span></Link>
+        <BrandLogo wordmarkClassName="sm:text-[1.9rem]" />
         <button ref={triggerRef} type="button" aria-expanded={open} aria-controls={open ? "why-dukaan-menu" : undefined} aria-haspopup="true" onMouseEnter={() => setOpen(true)} onFocus={() => setOpen(true)} onPointerDown={() => { pointerInteractionRef.current = true; }} onClick={() => { if (pointerInteractionRef.current) setOpen(true); else setOpen((current) => !current); pointerInteractionRef.current = false; }} onKeyDown={(event) => { if (event.key === "ArrowDown") { event.preventDefault(); setOpen(true); requestAnimationFrame(() => firstLinkRef.current?.focus()); } }} className="inline-flex min-h-11 items-center gap-1 rounded-full px-2.5 text-xs font-semibold text-[#24453a] transition hover:bg-[#e8f0e7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:gap-1.5 sm:px-4 sm:text-sm">Why use Dukaan<ChevronDown size={14} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} /></button>
       </div>
       <div className="flex items-center gap-1.5 sm:gap-2">

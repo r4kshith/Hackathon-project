@@ -8,7 +8,9 @@ export function StorefrontShell({ store, children }: { store: { slug: string; na
   const baseTheme = themes[(store.theme in themes ? store.theme : "atelier") as ThemeId];
   const themeConfig = store.themeConfig && typeof store.themeConfig === "object" ? store.themeConfig as { colors?: Partial<typeof baseTheme.colors>; font?: string } : {};
   const colors = { ...baseTheme.colors, ...themeConfig.colors };
-  const font = themeConfig.font ?? baseTheme.font;
+  const savedFont = themeConfig.font;
+  const legacyFonts = ["Georgia, serif", "Arial, Helvetica, sans-serif", "Trebuchet MS, sans-serif"];
+  const font = savedFont && !legacyFonts.includes(savedFont) ? savedFont : baseTheme.font;
   const content = store.contentConfig && typeof store.contentConfig === "object" ? store.contentConfig as { bannerText?: string; footerText?: string } : {};
   const style = { "--store-bg": colors.background, "--store-fg": colors.foreground, "--store-primary": colors.primary, "--store-accent": colors.accent, "--store-font": font } as CSSProperties;
   return <div data-store-theme={store.theme in themes ? store.theme : "atelier"} style={style} className="storefront-root min-h-screen bg-[var(--store-bg)] font-[var(--store-font)] text-[var(--store-fg)]">
