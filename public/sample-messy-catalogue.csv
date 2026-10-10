@@ -1,0 +1,5 @@
+Item Name,Details,Cost $,Product Code,Qty,Collection,Photo URL
+Pocket Notebook,Recycled paper pocket notebook,12,NOTE-001,14,Stationery,https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=900&q=85
+Pocket Notebook,Duplicate name demonstrates duplicate handling,14,NOTE-001,5,Stationery,
+Broken Candle,Small batch candle,-8,CANDLE-X,3,Home & Living,
+No Price Product,Product without a valid price,,MISC-003,-2,Novelty,

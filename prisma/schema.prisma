@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OWNER
+  STAFF
+}
+
+enum OrderStatus {
+  PLACED
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH_ON_DELIVERY
+  MOCK
+  RAZORPAY
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum NotificationChannel {
+  EMAIL_LOG
+  IN_APP
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  passwordHash String
+  name         String
+  memberships  StoreMember[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Store {
+  id             String         @id @default(cuid())
+  name           String
+  slug           String         @unique
+  businessType   String?
+  logoUrl        String?
+  phone          String?
+  email          String?
+  address        Json?
+  theme          String         @default("atelier")
+  themeConfig    Json?
+  contentConfig  Json?
+  onboardingStep Int            @default(0)
+  onboardingDone Boolean        @default(false)
+  members        StoreMember[]
+  categories     Category[]
+  products       Product[]
+  orders         Order[]
+  notifications  Notification[]
+  customers      Customer[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model StoreMember {
+  id        String   @id @default(cuid())
+  storeId   String
+  userId    String
+  role      UserRole @default(OWNER)
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([storeId, userId])
+  @@index([userId])
+  @@index([storeId])
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  storeId   String
+  name      String
+  slug      String
+  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  products  Product[]
+  createdAt DateTime  @default(now())
+
+  @@unique([storeId, slug])
+  @@index([storeId])
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  storeId     String
+  categoryId  String?
+  name        String
+  slug        String
+  sku         String?
+  description String           @db.Text
+  price       Decimal          @db.Decimal(10, 2)
+  compareAt   Decimal?         @db.Decimal(10, 2)
+  imageUrl    String?
+  images      Json?
+  stock       Int              @default(0)
+  active      Boolean          @default(true)
+  store       Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  category    Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  variants    ProductVariant[]
+  orderItems  OrderItem[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([storeId, slug])
+  @@unique([storeId, sku])
+  @@index([storeId, categoryId])
+  @@index([storeId, active])
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  storeId   String
+  productId String
+  name      String
+  sku       String?
+  price     Decimal? @db.Decimal(10, 2)
+  stock     Int      @default(0)
+  options   Json
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([storeId])
+  @@index([storeId, productId])
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  storeId   String
+  name      String
+  email     String
+  phone     String?
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  orders    Order[]
+  createdAt DateTime @default(now())
+
+  @@unique([storeId, email])
+  @@index([storeId])
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  storeId         String
+  customerId      String?
+  orderNumber     String
+  status          OrderStatus   @default(PLACED)
+  subtotal        Decimal       @db.Decimal(10, 2)
+  shipping        Decimal       @default(0) @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
+  paymentMethod   PaymentMethod @default(CASH_ON_DELIVERY)
+  paymentStatus   PaymentStatus @default(PENDING)
+  gatewayOrderId  String?       @unique
+  gatewayPaymentId String?      @unique
+  shippingAddress Json
+  store           Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  customer        Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items           OrderItem[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([storeId, orderNumber])
+  @@index([storeId, status])
+  @@index([storeId, createdAt])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  storeId     String
+  orderId     String
+  productId   String?
+  productName String
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  lineTotal   Decimal  @db.Decimal(10, 2)
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([storeId])
+  @@index([storeId, productId])
+}
+
+model Notification {
+  id        String              @id @default(cuid())
+  storeId   String
+  orderId   String?
+  channel   NotificationChannel @default(IN_APP)
+  recipient String?
+  subject   String
+  message   String              @db.Text
+  sentAt    DateTime            @default(now())
+  store     Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId, sentAt])
+}
