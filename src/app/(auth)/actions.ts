@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { redirect } from "next/navigation";
-import { createSession, registerUser, verifyCredentials } from "../../lib/auth";
+import { authSecretIsConfigured, createSession, registerUser, verifyCredentials } from "../../lib/auth";
 
 const signupSchema = z.object({ name: z.string().trim().min(2).max(80), email: z.email(), password: z.string().min(10).max(128) });
 const loginSchema = z.object({ email: z.email(), password: z.string().min(1).max(128) });
@@ -25,6 +25,10 @@ function logAuthFailure(event: "signup_failed" | "login_failed", error: unknown)
 export async function signupAction(_: AuthState, formData: FormData): Promise<AuthState> {
   const parsed = signupSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check your details and try again." };
+  if (!authSecretIsConfigured()) {
+    logAuthFailure("signup_failed", new Error("AUTH_SECRET is missing or shorter than 32 characters"));
+    return { error: "Account creation is temporarily unavailable. Please try again shortly." };
+  }
   try {
     const user = await registerUser(parsed.data);
     await createSession(user.id);
@@ -39,6 +43,10 @@ export async function signupAction(_: AuthState, formData: FormData): Promise<Au
 export async function loginAction(_: AuthState, formData: FormData): Promise<AuthState> {
   const parsed = loginSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Enter a valid email and password." };
+  if (!authSecretIsConfigured()) {
+    logAuthFailure("login_failed", new Error("AUTH_SECRET is missing or shorter than 32 characters"));
+    return { error: "Sign-in is temporarily unavailable. Please try again shortly." };
+  }
   try {
     const user = await verifyCredentials(parsed.data.email, parsed.data.password);
     if (!user) return { error: "Email or password is incorrect." };

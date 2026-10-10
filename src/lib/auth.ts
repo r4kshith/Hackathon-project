@@ -4,9 +4,14 @@ import { compare, hash } from "bcryptjs";
 import { db } from "./db";
 
 const COOKIE = "launch_session";
+export function authSecretIsConfigured() {
+  const value = process.env.AUTH_SECRET;
+  return Boolean(value && value.length >= 32);
+}
+
 function secret() {
   const value = process.env.AUTH_SECRET;
-  if (!value || value.length < 32) throw new Error("AUTH_SECRET must contain at least 32 characters");
+  if (!authSecretIsConfigured() || !value) throw new Error("AUTH_SECRET must contain at least 32 characters");
   return new TextEncoder().encode(value);
 }
 

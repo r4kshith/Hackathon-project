@@ -64,6 +64,26 @@ To explore the workspace, sign in with one of these seeded accounts. Both use th
 
 The development command applies pending migrations before starting Next.js. The health endpoint is `/api/health`.
 
+### Deploy on Vercel
+
+1. Connect the repository to Vercel and attach a hosted PostgreSQL database.
+2. In **Project Settings → Environment Variables**, add `DATABASE_URL` using the database provider's connection string and `AUTH_SECRET` using a unique random value of at least 32 characters. Add both to every environment you use (Production and Preview).
+3. Trigger a new deployment. Vercel uses the `vercel-build` script to apply committed Prisma migrations before building the app.
+4. Confirm the deployment build succeeds, then check `/api/health`; it should report `database: connected`.
+
+If your database provider supplies both pooled and direct URLs, use its direct connection URL for `DATABASE_URL` so Prisma migrations can run. Do not put `localhost` in Vercel's `DATABASE_URL`; that points to the Vercel build/runtime container, not your computer or hosted database.
+
+Generate an `AUTH_SECRET` in Windows PowerShell with:
+
+```powershell
+$bytes = New-Object byte[] 32
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
+[Convert]::ToBase64String($bytes)
+```
+
+Copy the output directly into Vercel's `AUTH_SECRET` value. Keep it private and do not commit it.
+
 ### Environment variables
 
 The minimum local configuration is in `.env.example`:
