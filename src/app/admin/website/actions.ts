@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import type { Prisma } from "../../../generated/prisma/client";
 import { tenantData } from "../../../lib/tenant";
 
 const categorySchema = z.object({
@@ -61,8 +62,8 @@ export async function deleteWebsiteCategoryAction(rawSlug: unknown) {
     if (!removed) return { error: "This collection changed while you were editing. Refresh and try again." };
     const previous = scoped.store.contentConfig && typeof scoped.store.contentConfig === "object" ? scoped.store.contentConfig as Record<string, unknown> : {};
     const existingContent = previous.categoryContent && typeof previous.categoryContent === "object" ? previous.categoryContent as Record<string, unknown> : {};
-    const categoryContent = Object.fromEntries(Object.entries(existingContent).filter(([slug]) => slug !== category.slug));
-    await scoped.storeSettings.update({ contentConfig: { ...previous, categoryContent } });
+    const categoryContent = Object.fromEntries(Object.entries(existingContent).filter(([slug]) => slug !== category.slug)) as Prisma.InputJsonObject;
+    await scoped.storeSettings.update({ contentConfig: { ...previous, categoryContent } as Prisma.InputJsonObject });
     revalidatePath("/admin/website");
     revalidatePath(`/s/${scoped.store.slug}`, "page");
     revalidatePath(`/s/${scoped.store.slug}/c/${category.slug}`, "page");

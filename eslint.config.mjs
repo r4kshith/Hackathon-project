@@ -3,4 +3,4 @@ import { FlatCompat } from "@eslint/eslintrc";
 
 const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
 
-export default defineConfig([...compat.extends("next/core-web-vitals", "next/typescript"), globalIgnores([".next/**", "node_modules/**", "next-env.d.ts"]) ]);
+export default defineConfig([...compat.extends("next/core-web-vitals", "next/typescript"), globalIgnores([".next/**", "node_modules/**", "src/generated/prisma/**", "next-env.d.ts"]) ]);
