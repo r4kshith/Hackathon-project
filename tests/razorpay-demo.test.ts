@@ -10,7 +10,7 @@ test("Razorpay demo config refuses live credentials", () => {
   process.env.RAZORPAY_KEY_SECRET = "secret";
   assert.equal(getRazorpayDemoConfig(), null);
   process.env.RAZORPAY_KEY_ID = "rzp_test_demo";
-  assert.deepEqual(getRazorpayDemoConfig(), { keyId: "rzp_test_demo", keySecret: "secret", currency: "USD" });
+  assert.deepEqual(getRazorpayDemoConfig(), { keyId: "rzp_test_demo", keySecret: "secret", currency: "INR" });
   if (previousId === undefined) delete process.env.RAZORPAY_KEY_ID; else process.env.RAZORPAY_KEY_ID = previousId;
   if (previousSecret === undefined) delete process.env.RAZORPAY_KEY_SECRET; else process.env.RAZORPAY_KEY_SECRET = previousSecret;
 });

@@ -62,7 +62,7 @@ async function settleCapturedPayment(orderId: string, payment: RazorpayPaymentRe
   if (existing.paymentStatus === PaymentStatus.PAID) return existing.gatewayPaymentId === payment.id ? { ok: true as const } : { error: "A different payment is already confirmed for this order." };
   if (existing.paymentStatus === PaymentStatus.REFUNDED) return { error: "This payment has already been refunded." };
   const expectedAmount = Math.round(Number(existing.total) * 100);
-  if (payment.order_id !== existing.gatewayOrderId || payment.amount !== expectedAmount || payment.currency !== "USD" || payment.status !== "captured") return { error: "The payment details do not match this order." };
+  if (payment.order_id !== existing.gatewayOrderId || payment.amount !== expectedAmount || payment.currency !== "INR" || payment.status !== "captured") return { error: "The payment details do not match this order." };
 
   try {
     await db.$transaction(async (tx) => {

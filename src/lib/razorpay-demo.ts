@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export type RazorpayDemoConfig = { keyId: string; keySecret: string; currency: "USD" };
+export type RazorpayDemoConfig = { keyId: string; keySecret: string; currency: "INR" };
 type RazorpayOrderResponse = { id: string; amount: number; currency: string; status: string };
 export type RazorpayPaymentResponse = { id: string; order_id: string; amount: number; currency: string; status: string };
 
@@ -9,7 +9,7 @@ export function getRazorpayDemoConfig(): RazorpayDemoConfig | null {
   const keyId = process.env.RAZORPAY_KEY_ID?.trim();
   const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim();
   if (!keyId?.startsWith("rzp_test_") || !keySecret) return null;
-  return { keyId, keySecret, currency: "USD" };
+  return { keyId, keySecret, currency: "INR" };
 }
 
 export function isValidRazorpaySignature(orderId: string, paymentId: string, signature: string, secret: string) {

@@ -2,6 +2,8 @@
 
 Dukaan is a multi-tenant, no-code store builder for independent businesses. Storefronts are available immediately at `/s/{slug}`; owners manage catalogues, orders, themes, and content from `/admin`.
 
+After onboarding, the new storefront opens in a separate tab. To use addresses such as `storename.yourdomain.com` in production, set `NEXT_PUBLIC_STORE_DOMAIN` to a domain you own, add both that domain and its wildcard (`*.yourdomain.com`) to the Vercel project, and configure the domain's DNS as Vercel instructs. Without that setup, onboarding opens the working `/s/{slug}` address on the current domain. Local development always uses this path address.
+
 ## Run locally
 
 1. Install Node.js 20+, then copy `.env.example` to `.env`.
@@ -18,7 +20,7 @@ Dukaan is a multi-tenant, no-code store builder for independent businesses. Stor
 2. Set `RAZORPAY_KEY_ID` (`rzp_test_…`) and `RAZORPAY_KEY_SECRET` in `.env.local` or the deployment environment. Never expose the secret to browser code or commit it.
 3. For webhook reconciliation, configure the webhook URL as `https://your-domain/api/webhooks/razorpay`, subscribe to `payment.captured` and `payment.failed`, choose a webhook secret, and set that same value as `RAZORPAY_WEBHOOK_SECRET`.
 4. Enable automatic capture for test payments in Razorpay's dashboard. Restart the app, sign in as a store owner, open **Payments**, and enable **Razorpay test checkout**. COD remains available.
-5. Complete a mock transaction with Razorpay's documented test credentials. The checkout amount uses the app's USD prices. The server creates the provider order, verifies the checkout signature and captured amount, updates inventory only after capture, and accepts signed webhooks as reconciliation.
+5. Complete a mock transaction with Razorpay's documented test credentials. The checkout amount uses the app's INR prices. The server creates the provider order, verifies the checkout signature and captured amount, updates inventory only after capture, and accepts signed webhooks as reconciliation.
 
 This is an early demo integration using shared platform test credentials across stores. It does not onboard each store to its own Razorpay account, configure settlements/payouts, handle production-grade refunds/disputes, or support live credentials. Do not use it for real orders or money.
 

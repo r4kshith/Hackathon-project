@@ -52,7 +52,12 @@ export function OnboardingWizard({ ownerName }: { ownerName: string }) {
         if (result.error) { storeTab?.close(); setError(result.error); return; }
         localStorage.removeItem("launch-onboarding");
         if (storeTab && !storeTab.closed) {
-          storeTab.location.replace(`/s/${result.slug}`);
+          const storeDomain = process.env.NEXT_PUBLIC_STORE_DOMAIN?.trim().replace(/^\.+|\.+$/g, "");
+          const isLocalHost = window.location.hostname === "localhost" || window.location.hostname.endsWith(".localhost") || window.location.hostname === "127.0.0.1";
+          const storeUrl = storeDomain && !isLocalHost
+            ? `https://${result.slug}.${storeDomain}`
+            : `${window.location.origin}/s/${result.slug}`;
+          storeTab.location.replace(storeUrl);
           router.push("/admin");
         } else router.push(`/s/${result.slug}`);
       } catch {

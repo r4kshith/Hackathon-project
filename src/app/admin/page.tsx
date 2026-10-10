@@ -2,8 +2,7 @@ import Link from "next/link";
 import { ArrowDownRight, ArrowRight, ArrowUpRight, Boxes, PackageCheck, ShoppingBag, Sparkles } from "lucide-react";
 import { tenantData } from "../../lib/tenant";
 import { healthSuggestions } from "../../lib/health-suggestions";
-
-const money = (value: number) => `$${value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+import { money } from "../../lib/money";
 
 export default async function DashboardPage() {
   const scoped = await tenantData();

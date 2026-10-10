@@ -58,7 +58,7 @@ export async function importProductsAction(raw: unknown) {
     const rowParsed = rowSchema.safeParse(rawRow);
     if (!rowParsed.success) { errors.push({ rowNumber: 0, message: rowParsed.error.issues[0]?.message ?? "Invalid row" }); continue; }
     const row = rowParsed.data;
-    const price = Number(row.price.replace(/[$,\s]/g, ""));
+    const price = Number(row.price.replace(/[$₹,\s]/g, ""));
     const stock = Number(row.stock.trim() || "0");
     if (!Number.isFinite(price) || price <= 0) { errors.push({ rowNumber: row.rowNumber, message: "Price must be a positive number." }); continue; }
     if (!Number.isInteger(stock) || stock < 0) { errors.push({ rowNumber: row.rowNumber, message: "Stock must be a whole number of zero or more." }); continue; }

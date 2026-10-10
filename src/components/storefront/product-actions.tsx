@@ -17,7 +17,7 @@ export function AddToCartButton({ storeSlug, product, fullWidth = true }: { stor
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1300);
   }
-  return <Button type="button" onClick={add} disabled={product.stock <= 0} style={{ backgroundColor: "var(--store-primary)" }} className={`storefront-add-button mt-3 text-white transition hover:opacity-90 ${fullWidth ? "w-full" : ""}`}>
+  return <Button type="button" onClick={add} disabled={product.stock <= 0} style={{ backgroundColor: "var(--store-primary)" }} className={`storefront-add-button mt-2 min-h-10 px-2 text-xs text-white transition hover:opacity-90 sm:mt-3 sm:min-h-11 sm:px-4 sm:text-sm ${fullWidth ? "w-full" : ""}`}>
     {added ? <><Check size={16} className="mr-2" />Added to bag</> : <><ShoppingBag size={16} className="mr-2" />{product.stock > 0 ? "Add to bag" : "Sold out"}</>}
   </Button>;
 }
